@@ -4,7 +4,7 @@ version = "0.1.2"
 description = "Policy-driven agent for real-time text moderation"
 readme = "README.md"
 requires-python = ">=3.11,<=3.13"
-license = "MIT"
+license = {text = "MIT"}
 authors = [{ name = "corefrg" }]
 keywords = ["moderation", "nlp", "toxicity", "content-moderation", "llm"]
 classifiers = [
@@ -12,8 +12,8 @@ classifiers = [
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Text Processing :: Filters",
+    "License :: OSI Approved :: MIT License",
 ]
-
 dependencies = [
     "glin-profanity",
     "rapidfuzz>=3.14.3",
