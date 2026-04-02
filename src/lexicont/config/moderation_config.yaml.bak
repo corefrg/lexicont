@@ -1,0 +1,127 @@
+general:
+  early_stop_confidence: 0.85
+  stage4_trigger_confidence: 0.80
+  # toggles (can be disabled independently)
+  enable_stage1: true        # profanity_filter
+  enable_stage2: true        # fuzzy_trigger
+  enable_stage3: true        # toxicity_ml
+  enable_llm_entry_judge: true
+  enable_llm_judge: true
+
+profanity_filter:
+  languages: ["russian", "english"]
+  detect_leetspeak: true
+  normalize_unicode: true
+  block_threshold: 0.85
+  rules_path: "config/moderation_rules.v1.yaml"
+
+fuzzy_trigger:
+  fuzzy_min: 90
+  block_threshold: 0.85
+  rules_path: "config/moderation_rules.v1.yaml"
+
+toxicity_ml:
+  model: "multilingual"
+  thresholds:
+    toxicity: 0.93
+    severe_toxicity: 0.85
+    obscene: 0.9
+    insult: 0.9
+    threat: 0.65
+    identity_attack: 0.8
+
+llm_entry_judge:
+  backend: "ollama"          # changed: llamacpp -> ollama for Kaggle
+  llamacpp:
+    url: "http://host.docker.internal:11434/v1/chat/completions"
+    model: "qwen3:4b"
+  ollama:
+    url: "http://localhost:11434/api/chat"   # ollama on Kaggle
+    model: "qwen3:4b"
+  timeout: 150
+  max_tokens: 1024
+  retries: 2
+  thinking_enabled: false
+  block_threshold: 0.80
+  pass_to_stage4_threshold: 0.70
+  system_prompt: |
+    Output ONLY valid JSON, no other text.
+    SCHEMA: {"decision":"","confidence":0.0,"flags":"","clean_text":"","reason":""}
+    - decision: "block"(harmful, conf>=0.8) | "review"(unclear) | "pass"(safe).
+    - confidence: 0.9=obvious, 0.5=unclear, 0.3=safe.
+    - flags: ONLY one of: "threat"|"illegal"|"hate"|"spam"|"sexual"|"self_harm"|"".
+    - clean_text: fix leetspeak/typos; copy original if already clean.
+    - reason: <=8 words, same language as input.
+
+
+llm_judge:
+  backend: "ollama"          # changed: llamacpp -> ollama for Kaggle
+  llamacpp:
+    url: "http://host.docker.internal:11434/v1/chat/completions"
+    model: "qwen3:4b"
+  ollama:
+    url: "http://localhost:11434/api/chat"   # ollama on Kaggle
+    model: "qwen3:4b"
+  timeout: 140
+  max_tokens: 2048
+  retries: 3
+  thinking_enabled: false
+  block_threshold: 0.75
+  review_threshold: 0.50
+  min_confidence: 0.55
+  categories:
+    - toxicity
+    - hate
+    - violence
+    - sexual
+    - self_harm
+    - illegal
+    - spam
+    - manipulation
+  system_prompt: |
+    You are a content moderation classifier. Respond ONLY with valid JSON. No other text at all. No prose outside think block.
+    SCHEMA:
+    {"_check":"","toxicity":0.0,"hate":0.0,"violence":0.0,"sexual":0.0,"self_harm":0.0,"illegal":0.0,"spam":0.0,"manipulation":0.0,"flags":"","confidence":0.0,"reason":""}
+    RULES:
+    - CONTEXT FIRST: read the WHOLE text before scoring. Single words mean nothing alone — "купить" is fine, "купить права через ГИБДД" is illegal. Judge the combined meaning and overall intent, not individual words.
+    - _check: one sentence — what is the text DOING.
+    - scores 0.0–1.0: judge INTENT of the full message.
+    - illegal: bribery / fake docs → illegal >= 0.8.
+    - toxicity: gaming slang without personal target → max 0.3.
+    - obfuscation: check for leetspeak and homoglyphs.
+    - flags: "illegal offer" | "threat" | "spam" | "slur" | "hate speech" | "obfuscation" | ""
+    - confidence: 0.9 if clear, 0.5 if ambiguous.
+    - reason: ≤8 words, same language as input.
+
+  rag:
+    enabled: true
+    embedding_model: "intfloat/multilingual-e5-small"
+
+    store_backend: "inmemory"  # changed: qdrant_server -> inmemory (no Qdrant on Kaggle)
+    server_host: "http://localhost"
+    server_port: 6333
+    server_api_key:            # empty = None, avoids insecure connection warning
+    auto_create: true
+    auto_load: true
+
+    top_k: 1
+    score_threshold: 0.87
+    normalize_embeddings: true
+    patterns_path: "rag/patterns.jsonl"
+    collection_name: "rag_patterns"
+    host: ":memory:"
+  rag_system_prompt: |
+    You are a content moderation classifier. Respond ONLY with valid JSON. No other text at all. No prose outside think block.
+    SCHEMA:
+    {"_check":"","toxicity":0.0,"hate":0.0,"violence":0.0,"sexual":0.0,"self_harm":0.0,"illegal":0.0,"spam":0.0,"manipulation":0.0,"flags":"","confidence":0.0,"reason":""}
+    RULES:
+    - CONTEXT FIRST: read the WHOLE text before scoring. Single words mean nothing alone — "купить" is fine, "купить права через ГИБДД" is illegal. Judge the combined meaning and overall intent, not individual words.
+    - _check: one sentence — what is the text DOING.
+    - scores 0.0–1.0: judge INTENT of the full message.
+    - illegal: bribery / fake docs → illegal >= 0.8.
+    - toxicity: gaming slang without personal target → max 0.3.
+    - obfuscation: check for leetspeak and homoglyphs.
+    - flags: "illegal offer" | "threat" | "spam" | "slur" | "hate speech" | "obfuscation" | ""
+    - confidence: 0.9 if clear, 0.5 if ambiguous.
+    - reason: ≤8 words, same language as input.
+    - RAG_CONTEXT RULES (CRITICAL): The RAG_CONTEXT below is a nearest-neighbour match from a database — it may be COMPLETELY UNRELATED to the actual input text. Before using it, explicitly ask yourself: "Does the matched pattern actually describe what THIS text is doing?" Only use RAG_CONTEXT if it genuinely matches.

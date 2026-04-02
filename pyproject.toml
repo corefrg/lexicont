@@ -1,0 +1,58 @@
+[project]
+name = "lexicont"
+version = "0.1.2"
+description = "Policy-driven agent for real-time text moderation"
+readme = "README.md"
+requires-python = ">=3.11,<=3.13"
+license = "MIT"
+authors = [{ name = "corefrg" }]
+keywords = ["moderation", "nlp", "toxicity", "content-moderation", "llm"]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing :: Filters",
+]
+
+dependencies = [
+    "glin-profanity",
+    "rapidfuzz>=3.14.3",
+    "detoxify>=0.5.2",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "requests>=2.32",
+    "qdrant-client>=1.12.0",
+    "sentence-transformers>=3.3.0",
+    "fastapi>=0.135.2,<0.136.0",
+    "uvicorn>=0.42.0,<0.43.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-mock>=3.0",
+    "httpx>=0.27",
+    "build>=1.0",
+    "twine>=5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/corefrg/lexicont"
+"Bug Tracker" = "https://github.com/corefrg/lexicont/issues"
+
+[project.scripts]
+lexicont = "lexicont.main:main"
+
+[build-system]
+requires = ["setuptools>=67", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+lexicont = [
+    "config/moderation_config.yaml",
+    "config/moderation_rules.v1.yaml",
+    "rag/patterns.jsonl",
+]

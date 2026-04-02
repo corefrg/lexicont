@@ -1,0 +1,33 @@
+categories:
+  profanity:
+    - fuck you
+    - мразь
+
+  illegal:
+    - buy fake passport
+    - купить права
+
+  drugs:
+    - buy heroin
+    - закладка
+
+  threats:
+    - we know where you live
+    - семье не поздоровится
+
+  spam:
+    - guaranteed profit
+    - быстрый заработок
+
+llm:
+  threat_markers:
+    - you will regret
+    - пожалеешь
+    - leak your address
+    - слью адрес
+
+  blacklist:
+    - "\\bheroin\\b"
+    - "\\bнаркотик\\w*\\b"
+    - "\\bобнал\\b"
+    - "\\bfuck\\b"
