@@ -17,20 +17,22 @@ The system uses a strictly linear pipeline with configurable early exits:
 
 ```mermaid
 graph TD
-        A[Input Text] --> B[Stage 1: Profanity Filter]
+    A[Input Text] --> B[Stage 1: Profanity Filter]
+
     subgraph "Policy Engine"
         B --> C[Stage 2: Fuzzy Trigger]
         C --> D[Stage 3: Toxicity ML Classifier]
         D --> E[Stage 3.5: LLM Entry Judge]
-        E --> F[Stage 4: LLM Judge + Optional RAG]
+
+        B -->|"High Confidence → Block"| Z
+        C -->|"High Confidence → Block"| Z
+        D -->|"High Confidence → Block"| Z
         
-        B -->|High Confidence Block| Z
-        C -->|High Confidence Block| Z
-        D -->|High Confidence Block| Z
-        E -->|Block or Low Confidence| Z
+        E -->|"High Confidence → Block"| Z
+        E -->|"Low Confidence"| F
     end
 
-    F --> Z[Final Decision: BLOCK / REVIEW / PASS]
+    F[Stage 4: LLM Judge + Optional RAG] --> Z[Final Decision: BLOCK / REVIEW / PASS]
 
     style Z fill:#4ade80,stroke:#22c55e
     style A fill:#60a5fa,stroke:#3b82f6
