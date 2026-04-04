@@ -1,4 +1,9 @@
-# Lexicont: lightweight policy driven agent for text moderation
+# Lexicont: Lightweight Policy-Driven Moderation Agent
+
+![License](https://img.shields.io/badge/license-MIT-green)
+![Python](https://img.shields.io/badge/python-3.11+-blue)
+[![PyPI](https://img.shields.io/pypi/v/lexicont)](https://pypi.org/project/lexicont/)
+![Status](https://img.shields.io/badge/status-active%20development-yellow)
 
 ![Lexicont Logo](assets/logo.png)
 
@@ -76,7 +81,7 @@ ollama serve          # in one terminal
 ollama pull qwen3:4b  # in another terminal
 ```
 
-**Option B - llama.cpp (more control, works great on CPU)**
+**Option B - llama.cpp**
 
 ```bash
 # Example with quantized model
@@ -210,3 +215,15 @@ To add a new filter, implement a function in the `filters/` directory and regist
 
 ## License
 MIT
+
+---
+
+## Built With
+
+- Python 3.11+
+- Pydantic (data validation)
+- FastAPI (HTTP API)
+- detoxify (multilingual toxicity classifier)
+- rapidfuzz (fuzzy matching)
+- Qwen3-4B (quantized LLM)
+- Qdrant (vector database for RAG)
